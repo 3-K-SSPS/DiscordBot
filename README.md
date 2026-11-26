@@ -61,6 +61,16 @@ is refused and the command replies telling you to enable it in the
 Intents*. Nothing else breaks in the meantime — the bot never requests the intent at the gateway,
 so it always starts, and `/add user:@Nekdo` keeps working either way.
 
+## Phrase counter
+
+The bot reads every message on the server and, when one contains `kys` or `drž hubu` (any case,
+with or without diacritics, as whole words), replies in that channel with `kys counter +1` or
+`drz hubu counter +1`. Each phrase counts once per message; messages from bots are ignored.
+
+This needs the privileged **Message Content Intent**, enabled in the
+[Developer Portal](https://discord.com/developers/applications) under *Bot → Privileged Gateway
+Intents*. Without it the bot fails to log in (`Used disallowed intents`).
+
 ## The weekly announcement
 
 The rotation advances once per ISO week, announced at **Monday 07:40 Europe/Prague**.

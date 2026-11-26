@@ -5,9 +5,17 @@ import { config } from './config.ts';
 import { getSendableChannel } from './utils/channels.ts';
 import { loadCommands } from './utils/commands.ts';
 import { completeDuty, getCurrentDuty, getLastCompletedWeek } from './utils/duty.ts';
+import { findCountedPhrases } from './utils/phrases.ts';
 import { dutyWeekKey, isWeeklyDutyDue } from './utils/week.ts';
 
-const client = new Client({ intents: [GatewayIntentBits.Guilds] });
+const client = new Client({
+    intents: [
+        GatewayIntentBits.Guilds,
+        GatewayIntentBits.GuildMessages,
+        // Privileged: must also be enabled in the Developer Portal, or login fails.
+        GatewayIntentBits.MessageContent,
+    ],
+});
 
 client.commands = new Collection();
 for (const command of await loadCommands()) {
@@ -38,6 +46,19 @@ client.on(Events.InteractionCreate, async (interaction) => {
             await interaction.followUp(errorReply);
         } else {
             await interaction.reply(errorReply);
+        }
+    }
+});
+
+client.on(Events.MessageCreate, async (message) => {
+    // Bots are skipped — above all this one, whose "kys counter +1" would otherwise trigger itself.
+    if (message.author.bot || !message.inGuild()) return;
+
+    for (const label of findCountedPhrases(message.content)) {
+        try {
+            await message.channel.send(`${label} counter +1`);
+        } catch (error) {
+            console.error(`Failed to send the ${label} counter to ${message.channelId}:`, error);
         }
     }
 });
